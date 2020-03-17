@@ -1,16 +1,30 @@
 import telebot
 import json
+import time
 
 import DB
 
 import Parser
 
-from config import TOKEN
+from flask import Flask, request
+
+from config import TOKEN, URL
 
 from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
     makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups
 
 bot = telebot.TeleBot(TOKEN)
+# ==================== WEBHOOK ==================== #
+bot.remove_webhook()
+time.sleep(1)
+bot.set_webhook(url=URL + TOKEN)
+app = Flask(__name__)
+
+
+@app.route(f'/{TOKEN}', methods=["POST"])
+def webhook():
+    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    return 'ok', 200
 
 
 # ==================== Обработка команд ==================== #
@@ -36,6 +50,7 @@ def registration(message):
     bot.send_message(chat_id=chat_id, text='Пройдите повторную регистрацию😉\n'
                                            'Выберите институт',
                      reply_markup=makeInlineKeyboard_chooseInstitute(DB.get_institute()))
+
 
 # Команда /reg
 @bot.message_handler(commands=['help'])
@@ -129,5 +144,6 @@ def text(message):
 
 if __name__ == '__main__':
     bot.skip_pending = True
+    bot.remove_webhook()
     print('Бот запущен')
     bot.polling(none_stop=True, interval=0)
