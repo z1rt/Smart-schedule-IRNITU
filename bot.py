@@ -13,7 +13,7 @@ from config import TOKEN, URL
 from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
     makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups
 
-bot = telebot.TeleBot(TOKEN)
+bot = telebot.TeleBot(TOKEN, threaded=False)
 # ==================== WEBHOOK ==================== #
 bot.remove_webhook()
 time.sleep(1)
