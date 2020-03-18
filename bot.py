@@ -6,25 +6,17 @@ import DB
 
 import Parser
 
+import reminder
+
 from flask import Flask, request
 
 from config import TOKEN, URL
 
 from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
-    makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups
+    makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups, makeInlineKeyboard_remining, \
+    makeInlineKeyboard_custRemining
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
-# ==================== WEBHOOK ==================== #
-bot.remove_webhook()
-time.sleep(1)
-bot.set_webhook(url=URL + TOKEN)
-app = Flask(__name__)
-
-
-@app.route(f'/{TOKEN}', methods=["POST"])
-def webhook():
-    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-    return 'ok', 200
 
 
 # ==================== Обработка команд ==================== #
@@ -35,10 +27,12 @@ def start_message(message):
     chat_id = message.chat.id
 
     # Добавить проверку - есть ли пользователь в базе данных!
+    if DB.get_user_info(chat_id):
+        DB.del_user_info(chat_id)
 
-    bot.send_message(chat_id, text='Привет!\n')
-    bot.send_message(chat_id, text='Для начала пройдите небольшую регистрацию😉\n'
-                                   'Выберите институт',
+    bot.send_message(chat_id=chat_id, text='Привет!\n')
+    bot.send_message(chat_id=chat_id, text='Для начала пройдите небольшую регистрацию😉\n'
+                                           'Выберите институт',
                      reply_markup=makeInlineKeyboard_chooseInstitute(DB.get_institute()))
 
 
@@ -52,7 +46,7 @@ def registration(message):
                      reply_markup=makeInlineKeyboard_chooseInstitute(DB.get_institute()))
 
 
-# Команда /reg
+# Команда /help
 @bot.message_handler(commands=['help'])
 def help(message):
     chat_id = message.chat.id
@@ -60,12 +54,21 @@ def help(message):
                                            '/reg - повторная регистрация')
 
 
+last_data = {}  # Информация о последней нажатой кнопке пользователем
+
+
 # ==================== Обработка Inline кнопок ==================== #
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(message):
+    global last_data
     chat_id = message.message.chat.id
     message_id = message.message.message_id
     data = message.data
+
+    # Проверка что пользователь не нажал одну и ту же кнопку неколько раз (с одной и той же информацией)
+    if chat_id in last_data.keys() and data == last_data[chat_id]:
+        return
+    last_data[chat_id] = data
     print(data)
 
     # После того как пользователь выбрал институт
@@ -119,9 +122,47 @@ def handle_query(message):
         bot.delete_message(message_id=message_id, chat_id=chat_id)
 
         bot.send_message(chat_id=chat_id,
-                         text='Вы успешно зарегистрировалась!😊\n\n'
+                         text='Вы успешно зарегистрировались!😊\n\n'
                               'Для того чтобы пройти регистрацию повторно, воспользуйтесь командой /reg',
                          reply_markup=makeReplyKeyboard_startMenu())
+
+    elif 'remining_btn' in data:
+        data = json.loads(data)
+        if data['remining_btn'] == 'close':
+            bot.delete_message(message_id=message_id, chat_id=chat_id)
+            return
+        time = data['remining_btn']
+        bot.edit_message_text(message_id=message_id, chat_id=chat_id,
+                              text='Настройка напоминаний ⚙\n\n'
+                                   'Укажите за сколько минут до начала пары должно приходить сообщение',
+                              reply_markup=makeInlineKeyboard_custRemining(time))
+
+
+    elif 'remining_del' in data:
+        data = json.loads(data)
+        time = data['remining_del']
+        if time == 0:
+            return
+        time -= 1
+        bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
+                                      reply_markup=makeInlineKeyboard_custRemining(time))
+
+
+    elif 'remining_add' in data:
+        data = json.loads(data)
+        time = data['remining_add']
+        time += 1
+        bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
+                                      reply_markup=makeInlineKeyboard_custRemining(time))
+
+    elif 'remining_save' in data:
+        data = json.loads(data)
+        time = data['remining_save']
+
+        DB.set_user_reminding(chat_id=chat_id, time=time)
+
+        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=reminder.remining_info(time),
+                              reply_markup=makeInlineKeyboard_remining(time))
 
 
 # ==================== Обработка текста ==================== #
@@ -130,14 +171,19 @@ def text(message):
     chat_id = message.chat.id
     data = message.text
 
-    if 'Расписание' in data:
-        user_info = DB.get_user_info()
+    user_info = DB.get_user_info(chat_id)
+
+    if 'Расписание' in data and user_info:
         schedule = Parser.get_full_schedule(user_info)
         bot.send_message(chat_id=chat_id, text=schedule)
-    elif 'Ближайшая пара' in data:
+    elif 'Ближайшая пара' in data and user_info:
         pass
-    elif 'Настройка уведомлений' in data:
-        pass
+    elif 'Напоминания' in data and user_info:
+        time = user_info['remining']
+        if not time:
+            time = 0
+        bot.send_message(chat_id=chat_id, text=reminder.remining_info(time),
+                         reply_markup=makeInlineKeyboard_remining(time))
     else:
         bot.send_message(chat_id, text='Я вас не понимаю 😞')
 
@@ -147,3 +193,16 @@ if __name__ == '__main__':
     bot.remove_webhook()
     print('Бот запущен')
     bot.polling(none_stop=True, interval=0)
+
+
+# ==================== WEBHOOK ==================== #
+bot.remove_webhook()
+time.sleep(1)
+bot.set_webhook(url=URL + TOKEN)
+app = Flask(__name__)
+
+
+@app.route(f'/{TOKEN}', methods=["POST"])
+def webhook():
+    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    return 'ok', 200

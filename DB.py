@@ -19,9 +19,9 @@ def get_group(cours_id=0):
 
 def get_user_info(chat_id=0):
     # (Заполнять словами)
-    user_info = {'chat_id': chat_id, 'inst': 'ИИТиАД', 'course': '',
-                 'group': ''}  # Если в базе данных какое-то поле пустое, то записать пустую строку или None
-
+    # Если такого пользоваетля нет в базе данных, то вернуть пустую строку или None
+    user_info = {'chat_id': chat_id, 'inst': 'ИИТиАД', 'course': '', 'group': '', 'remining': ''}
+    # Если в базе данных какое-то поле пустое, то записать пустую строку или None
     return user_info
 
 
@@ -40,6 +40,12 @@ def set_user_group(chat_id=0, group_id=0):
     pass
 
 
+# Записываем в базу время напоминания (за сколько минут до пары)
+def set_user_reminding(chat_id=0, time=0):
+    print(f'set_user_reminding, time = {time}')
+    pass
+
+
 # Удаляем информацию об институте пользователя из базы данных
 def del_user_inst(chat_id=0):
     pass
@@ -52,4 +58,5 @@ def del_user_course(chat_id=0):
 
 # Удаляем информацию о пользователе из базы данных
 def del_user_info(chat_id=0):
+    print('del_user_info, chat_id:', chat_id)
     pass
