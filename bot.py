@@ -8,6 +8,8 @@ import Parser
 
 import reminder
 
+import timer
+
 from flask import Flask, request
 
 from config import TOKEN, URL
@@ -143,7 +145,7 @@ def handle_query(message):
         time = data['remining_del']
         if time == 0:
             return
-        time -= 1
+        time -= 5
         bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
                                       reply_markup=makeInlineKeyboard_custRemining(time))
 
@@ -151,7 +153,7 @@ def handle_query(message):
     elif 'remining_add' in data:
         data = json.loads(data)
         time = data['remining_add']
-        time += 1
+        time += 5
         bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
                                       reply_markup=makeInlineKeyboard_custRemining(time))
 
@@ -175,9 +177,19 @@ def text(message):
 
     if 'Расписание' in data and user_info:
         schedule = Parser.get_full_schedule(user_info)
-        bot.send_message(chat_id=chat_id, text=schedule)
+        bot.send_message(chat_id=chat_id, text=schedule
+                         )
     elif 'Ближайшая пара' in data and user_info:
-        pass
+        lessons = [{'date': '18 марта', 'time': '22:15', 'name': 'Физика', 'aud': 'К-313'},
+                   {'date': '18 марта', 'time': '22:30', 'name': 'Матан', 'aud': 'Ж-310'}]
+        near_lesson = timer.get_near_lesson(lessons)
+        if not near_lesson:
+            bot.send_message(chat_id=chat_id, text='Сегодня больше пар нет 😎')
+            return
+        bot.send_message(chat_id=chat_id, text=f'Ближайшая пара {near_lesson["name"]}\n'
+                                               f'Аудитория {near_lesson["aud"]}\n'
+                                               f'Начало в {near_lesson["time"]}')
+
     elif 'Напоминания' in data and user_info:
         time = user_info['remining']
         if not time:
@@ -193,7 +205,6 @@ if __name__ == '__main__':
     bot.remove_webhook()
     print('Бот запущен')
     bot.polling(none_stop=True, interval=0)
-
 
 # ==================== WEBHOOK ==================== #
 bot.remove_webhook()
