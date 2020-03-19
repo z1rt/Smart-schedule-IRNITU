@@ -3,7 +3,7 @@ import os
 
 BASE_DIR = os.path.dirname(__file__)
 # Устанавливаем соединение
-conn = sqlite3.connect(f'{BASE_DIR}+/database.db')
+conn = sqlite3.connect(f'{BASE_DIR}/database.db')
 
 
 # Инициализация ДБ
