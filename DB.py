@@ -1,7 +1,9 @@
 import sqlite3
+import os
 
+BASE_DIR = os.path.dirname(__file__)
 # Устанавливаем соединение
-conn = sqlite3.connect('database.db')
+conn = sqlite3.connect(f'{BASE_DIR}+/database.db')
 
 
 # Инициализация ДБ
@@ -77,9 +79,7 @@ def insert_groups(groups=[]):
     cursor.close()
 
 
-
 init_db()
-
 
 
 # Список институтов
