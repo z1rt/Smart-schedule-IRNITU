@@ -1,6 +1,6 @@
 import telebot
 import json
-import time
+from time import sleep
 
 import DB
 
@@ -28,9 +28,9 @@ bot = telebot.TeleBot(TOKEN, threaded=False)
 def start_message(message):
     chat_id = message.chat.id
 
-    # Добавить проверку - есть ли пользователь в базе данных!
+    # Проверяем есть пользователь в базе данных
     if DB.get_user_info(chat_id):
-        DB.del_user_info(chat_id)
+        DB.del_user_info(chat_id)  # Узадяем пользвателя из базы данных
 
     bot.send_message(chat_id=chat_id, text='Привет!\n')
     bot.send_message(chat_id=chat_id, text='Для начала пройдите небольшую регистрацию😉\n'
@@ -79,9 +79,9 @@ def handle_query(message):
         courses = DB.get_course(data['inst_id'])
 
         DB.set_user_inst(chat_id=chat_id, inst_id=data['inst_id'])  # Записываем в базу институт пользователя
-
+        inst = DB.get_user_info(chat_id=chat_id)['inst_name']
         # Выводим сообщение со списком курсов
-        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text='Выберите курс',
+        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst}\nВыберите курс',
                               reply_markup=makeInlineKeyboard_chooseCourses(courses))
 
     # После того как пользователь выбрал курс или нажал кнопку назад при выборе курса
@@ -90,7 +90,7 @@ def handle_query(message):
 
         # Если нажали кнопку назад
         if data['course_id'] == 'back':
-            DB.del_user_inst(chat_id)  # Удаляем информацию об институте пользователя из базы данных
+            DB.del_user_info(chat_id)  # Удаляем информацию об институте пользователя из базы данных
             bot.edit_message_text(message_id=message_id, chat_id=chat_id,
                                   text='Выберите институт',
                                   reply_markup=makeInlineKeyboard_chooseInstitute(DB.get_institute()))
@@ -99,9 +99,11 @@ def handle_query(message):
         groups = DB.get_group(data['course_id'])
 
         DB.set_user_course(chat_id=chat_id, course_id=data['course_id'])  # Записываем в базу курс пользователя
-
+        user_info = DB.get_user_info(chat_id=chat_id)
+        inst_name = user_info['inst_name']
+        kourse = user_info['course']
         # Выводим сообщение со списком групп
-        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text='Выберите группу',
+        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst_name}, {kourse}\nВыберите группу',
                               reply_markup=makeInlineKeyboard_chooseGroups(groups))
 
     # После того как пользователь выбрал группу или нажал кнопку назад при выборе группы
@@ -111,10 +113,10 @@ def handle_query(message):
         # Если нажали кнопку назад
         if data['group_id'] == 'back':
             DB.del_user_course(chat_id)  # Удаляем информацию о курсе пользователя из базы данных
-            inst_name = DB.get_user_info(chat_id)['inst']
+            inst_name = DB.get_user_info(chat_id)['inst_name']
             courses = DB.get_course(inst_name=inst_name)
             # Выводим сообщение со списком курсов
-            bot.edit_message_text(message_id=message_id, chat_id=chat_id, text='Выберите курс',
+            bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst_name}\nВыберите курс',
                                   reply_markup=makeInlineKeyboard_chooseCourses(courses))
             return
 
@@ -177,8 +179,8 @@ def text(message):
 
     if 'Расписание' in data and user_info:
         schedule = Parser.get_full_schedule(user_info)
-        bot.send_message(chat_id=chat_id, text=schedule
-                         )
+        group = user_info['group']
+        bot.send_message(chat_id=chat_id, text=f'<b>Расписание {group}</b>\n{schedule}', parse_mode='HTML')
     elif 'Ближайшая пара' in data and user_info:
         lessons = [{'date': '18 марта', 'time': '22:15', 'name': 'Физика', 'aud': 'К-313'},
                    {'date': '18 марта', 'time': '22:30', 'name': 'Матан', 'aud': 'Ж-310'}]
@@ -191,6 +193,7 @@ def text(message):
                                                f'Начало в {near_lesson["time"]}')
 
     elif 'Напоминания' in data and user_info:
+        last_data[chat_id] = ''
         time = user_info['remining']
         if not time:
             time = 0
@@ -208,7 +211,7 @@ if __name__ == '__main__':
 
 # ==================== WEBHOOK ==================== #
 bot.remove_webhook()
-time.sleep(1)
+sleep(1)
 bot.set_webhook(url=URL + TOKEN)
 app = Flask(__name__)
 
