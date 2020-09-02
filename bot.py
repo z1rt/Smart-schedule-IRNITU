@@ -1,7 +1,7 @@
 import telebot
 import json
 from time import sleep
-
+import os
 import DB
 
 import Parser
@@ -12,11 +12,11 @@ import timer
 
 from flask import Flask, request
 
-from config import TOKEN, URL
-
 from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
     makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups, makeInlineKeyboard_remining, \
     makeInlineKeyboard_custRemining
+
+TOKEN = os.environ.get('TOKEN')
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
@@ -205,7 +205,7 @@ def text(message):
 
 if __name__ == '__main__':
     bot.skip_pending = True
-    bot.remove_webhook()
+    # bot.remove_webhook()
     print('Бот запущен')
     bot.polling(none_stop=True, interval=0)
 
