@@ -11,14 +11,18 @@ import reminder
 # import timer
 
 from flask import Flask, request
+import requests
+import json
 
 from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
     makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups, makeInlineKeyboard_remining, \
     makeInlineKeyboard_custRemining
 
 TOKEN = os.environ.get('TOKEN')
+TIMER_URL = os.environ.get('TIMER_URL')
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
+
 
 # ==================== Обработка команд ==================== #
 
@@ -178,16 +182,25 @@ def text(message):
     user_info = DB.get_user_info(chat_id)
 
     # Временно
-    user_info =True
+    user_info = True
 
     if 'Расписание' in data and user_info:
         schedule = Parser.get_full_schedule(user_info)
         group = user_info['group']
         bot.send_message(chat_id=chat_id, text=f'<b>Расписание {group}</b>\n{schedule}', parse_mode='HTML')
     elif 'Ближайшая пара' in data and user_info:
-        lessons = [{'date': '18 марта', 'time': '22:15', 'name': 'Физика', 'aud': 'К-313'},
-                   {'date': '18 марта', 'time': '22:30', 'name': 'Матан', 'aud': 'Ж-310'}]
-        near_lesson = timer.get_near_lesson(lessons)
+        lessons = [{'date': '3 сентября', 'time': '16:00', 'name': 'Физика', 'aud': 'К-313'},
+                   {'date': '3 сентября', 'time': '17:00', 'name': 'Матан', 'aud': 'Ж-310'}]
+        try:
+            response = requests.get(f'{TIMER_URL}',
+                                    params={'lessons': json.dumps(lessons)})
+            near_lesson = json.loads(response.text)
+        except Exception as e:
+            bot.send_message(chat_id=chat_id, text='Технические неполадки😣 Попробуйте позже')
+            return
+
+        print(near_lesson)
+
         if not near_lesson:
             bot.send_message(chat_id=chat_id, text='Сегодня больше пар нет 😎')
             return

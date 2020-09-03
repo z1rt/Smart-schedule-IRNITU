@@ -1,20 +1,31 @@
 from datetime import datetime
 import pytz
 
+from flask import Flask, request
+import json
+
+app = Flask(__name__)
+
 TZ_IRKUTSK = pytz.timezone('Asia/Irkutsk')
 
 
-# Возвращает ближайшую пару
+@app.route('/timer')
 def get_near_lesson(lessons=[]):
+    '''Возвращает ближайшую пару'''
     global TZ_IRKUTSK
 
+    lessons = request.args.get('lessons')
+    if not lessons:
+        return '400 Bad Request', 400
+    lessons = json.loads(lessons)
+
     # ============== тестовые данные =============
-    # lessons = [{'date': '19 марта', 'time': '21:15', 'name': 'Физика', 'aud': 'К-313'},
-    #            {'date': '18 марта', 'time': '21:30', 'name': 'Матан', 'aud': 'Ж-310'}]
+    # lessons = [{'date': '3 сентября', 'time': '16:00', 'name': 'Физика', 'aud': 'К-313'},
+    #            {'date': '3 сентября', 'time': '17:00', 'name': 'Матан', 'aud': 'Ж-310'}]
     # =============================================
 
     months = {'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4, 'мая': 5, 'июня': 6, 'июля': 7, 'августа': 8,
-              'снтября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12}
+              'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12}
     year_now = int(datetime.now(TZ_IRKUTSK).strftime('%Y'))
     month_now = int(datetime.now(TZ_IRKUTSK).strftime('%m'))
     day_now = int(datetime.now(TZ_IRKUTSK).strftime('%d'))
@@ -42,5 +53,9 @@ def get_near_lesson(lessons=[]):
             near_lesson['aud'] = les['aud']
 
     if not near_lesson['name']:
-        near_lesson = None
+        near_lesson = {}
     return near_lesson
+
+
+if __name__ == '__main__':
+    app.run()
