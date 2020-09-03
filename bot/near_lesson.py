@@ -1,23 +1,12 @@
 from datetime import datetime
 import pytz
 
-from flask import Flask, request
-import json
-
-app = Flask(__name__)
-
 TZ_IRKUTSK = pytz.timezone('Asia/Irkutsk')
 
 
-@app.route('/timer')
-def get_near_lesson(lessons=[]):
+def get_near_lesson(lessons: list) -> dict:
     '''Возвращает ближайшую пару'''
     global TZ_IRKUTSK
-
-    lessons = request.args.get('lessons')
-    if not lessons:
-        return '400 Bad Request', 400
-    lessons = json.loads(lessons)
 
     # ============== тестовые данные =============
     # lessons = [{'date': '3 сентября', 'time': '16:00', 'name': 'Физика', 'aud': 'К-313'},
