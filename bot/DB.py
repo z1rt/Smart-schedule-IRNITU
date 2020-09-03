@@ -2,8 +2,9 @@ import sqlite3
 import os
 
 BASE_DIR = os.path.dirname(__file__)
+print(BASE_DIR)
 # Устанавливаем соединение
-conn = sqlite3.connect(f'{BASE_DIR}/database.db')
+conn = sqlite3.connect(f'database.db')
 
 
 # Инициализация ДБ
@@ -92,6 +93,7 @@ def get_institute():
         inst = {'inst_id': i[0], 'name': i[1]}
         institute_list.append(inst)
     cursor.close()
+
     return institute_list
 
 

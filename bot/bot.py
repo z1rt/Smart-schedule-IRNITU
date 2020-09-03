@@ -4,11 +4,11 @@ from time import sleep
 import os
 import DB
 
-import Parser
+# import parser
 
 import reminder
 
-import timer
+# import timer
 
 from flask import Flask, request
 
@@ -20,7 +20,6 @@ TOKEN = os.environ.get('TOKEN')
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
-
 # ==================== Обработка команд ==================== #
 
 # Команда /start
@@ -31,6 +30,7 @@ def start_message(message):
     # Проверяем есть пользователь в базе данных
     if DB.get_user_info(chat_id):
         DB.del_user_info(chat_id)  # Узадяем пользвателя из базы данных
+    print(DB.get_institute())
 
     bot.send_message(chat_id=chat_id, text='Привет!\n')
     bot.send_message(chat_id=chat_id, text='Для начала пройдите небольшую регистрацию😉\n'
@@ -177,6 +177,9 @@ def text(message):
 
     user_info = DB.get_user_info(chat_id)
 
+    # Временно
+    user_info =True
+
     if 'Расписание' in data and user_info:
         schedule = Parser.get_full_schedule(user_info)
         group = user_info['group']
@@ -208,15 +211,15 @@ if __name__ == '__main__':
     # bot.remove_webhook()
     print('Бот запущен')
     bot.polling(none_stop=True, interval=0)
+else:
+    # ==================== WEBHOOK ==================== #
+    bot.remove_webhook()
+    sleep(1)
+    bot.set_webhook(url=URL + TOKEN)
+    app = Flask(__name__)
 
-# ==================== WEBHOOK ==================== #
-bot.remove_webhook()
-sleep(1)
-bot.set_webhook(url=URL + TOKEN)
-app = Flask(__name__)
 
-
-@app.route(f'/{TOKEN}', methods=["POST"])
-def webhook():
-    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-    return 'ok', 200
+    @app.route(f'/{TOKEN}', methods=["POST"])
+    def webhook():
+        bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+        return 'ok', 200
