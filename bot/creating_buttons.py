@@ -14,27 +14,27 @@ def makeReplyKeyboard_startMenu():
 
 
 # Кнопки выбора института
-def makeInlineKeyboard_chooseInstitute(institute_list=[]):
+def makeInlineKeyboard_chooseInstitute(institutes=[]):
+    print(institutes)
     markup = types.InlineKeyboardMarkup()
-    for inst in institute_list:
-        name = inst['name']
-        institute_id = inst['inst_id']
-        data = json.dumps({"inst_id": institute_id})
+    for institute in institutes:
+        name = institute['name']
+        data = json.dumps({"institute": name})
         markup.add(types.InlineKeyboardButton(text=name, callback_data=data))
     return markup
 
 
 # Кнопки выбора курса
-def makeInlineKeyboard_chooseCourses(courses_list=[]):
+def makeInlineKeyboard_chooseCourses(courses=[]):
+
     markup = types.InlineKeyboardMarkup()
-    for course in courses_list:
+    for course in courses:
         name = course['name']
-        course_id = course['course_id']
-        data = json.dumps({"course_id": course_id})
+        data = json.dumps({"course": name})
         markup.add(types.InlineKeyboardButton(text=name, callback_data=data))
 
     # Кнопка назад
-    data = json.dumps({"course_id": "back"})
+    data = json.dumps({"course": "back"})
     markup.add(types.InlineKeyboardButton(text='<', callback_data=data))
     return markup
 
