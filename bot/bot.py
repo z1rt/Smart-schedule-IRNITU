@@ -2,15 +2,15 @@ import telebot
 import json
 from time import sleep
 import os
-import DB
+from . import DB
 
-from near_lesson import get_near_lesson
+from .near_lesson import get_near_lesson
 
 from flask import Flask, request
 import requests
 import json
 
-from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
+from .creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
     makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups, makeInlineKeyboard_remining, \
     makeInlineKeyboard_custRemining
 
@@ -18,6 +18,14 @@ TOKEN = os.environ.get('TOKEN')
 TIMER_URL = os.environ.get('TIMER_URL')
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
+
+app = Flask(__name__)
+
+
+@app.route(f'/{TOKEN}', methods=["POST"])
+def webhook():
+    bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+    return 'ok', 200
 
 
 # ==================== Обработка команд ==================== #
@@ -260,22 +268,3 @@ def text(message):
                          reply_markup=makeInlineKeyboard_remining(time))
     else:
         bot.send_message(chat_id, text='Я вас не понимаю 😞')
-
-
-if __name__ == '__main__':
-    bot.skip_pending = True
-    # bot.remove_webhook()
-    print('Бот запущен')
-    bot.polling(none_stop=True, interval=0)
-else:
-    # ==================== WEBHOOK ==================== #
-    bot.remove_webhook()
-    sleep(1)
-    bot.set_webhook(url=URL + TOKEN)
-    app = Flask(__name__)
-
-
-    @app.route(f'/{TOKEN}', methods=["POST"])
-    def webhook():
-        bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
-        return 'ok', 200
