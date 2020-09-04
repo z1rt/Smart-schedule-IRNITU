@@ -51,7 +51,7 @@ class MongodbService(object):
 
     def save_or_update_user(self, chat_id: int, institute='', course='', group='', reminder=0):
         """сохраняет или изменяет данные пользователя (коллекция users)"""
-        update = {'chat_id': chat_id}
+        update = {'chat_id': chat_id, 'reminder': 0}
         if institute:
             update['institute'] = institute
         if course:
@@ -73,9 +73,8 @@ class MongodbService(object):
         return self._db.users.delete_one(filter={'chat_id': chat_id})
 
 
-
 # from pprint import pprint
-# storage = MongodbService()
+storage = MongodbService()
 #
 # storage.save_courses([
 #     {'name': '1 курс', 'institute': 'ИВТ'},
@@ -92,3 +91,22 @@ class MongodbService(object):
 
 
 # pprint(storage.get_courses(institute='ИИТиАД'))
+
+
+# storage.save_groups([
+#     {
+#         'name': 'ИБб-18-1',
+#         'institute': 'ИИТиАД',
+#         'course': '3 курс'
+#     },
+#     {
+#         'name': 'ИБб-18-2',
+#         'institute': 'ИИТиАД',
+#         'course': '3 курс'
+#     },
+#     {
+#         'name': 'ИБб-20-1',
+#         'institute': 'ИИТиАД',
+#         'course': '1 курс'
+#     }
+# ])

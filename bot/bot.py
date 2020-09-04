@@ -23,7 +23,7 @@ TIMER_URL = os.environ.get('TIMER_URL')
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
-storage = MongodbService().get_instance()
+storage = MongodbService() #.get_instance()
 
 app = Flask(__name__)
 
@@ -95,7 +95,6 @@ def handle_query(message):
             return
 
         user = storage.get_user(chat_id=chat_id)
-        print('user: ', user)
 
     # После того как пользователь выбрал курс или нажал кнопку назад при выборе курса
     elif 'course' in data:
@@ -117,7 +116,6 @@ def handle_query(message):
 
         storage.save_or_update_user(chat_id=chat_id, course=data['course'])  # Записываем в базу курс пользователя
         user = storage.get_user(chat_id=chat_id)
-        print('user: ', user)
         institute = user['institute']
         course = user['course']
         try:
@@ -130,17 +128,15 @@ def handle_query(message):
             return
 
     # После того как пользователь выбрал группу или нажал кнопку назад при выборе группы
-    elif 'group_id' in data:
+    elif 'group' in data:
         data = json.loads(data)
 
         # Если нажали кнопку назад
-        if data['group_id'] == 'back':
+        if data['group'] == 'back':
             storage.delete_user_or_userdata(chat_id=chat_id,
                                             delete_only_course=True)  # Удаляем информацию о курсе пользователя из базы данных
             institute = storage.get_user(chat_id=chat_id)['institute']
             courses = storage.get_courses(institute=institute)
-
-            print(courses)
 
             try:
                 # Выводим сообщение со списком курсов
@@ -151,7 +147,7 @@ def handle_query(message):
                 print(f'Error: {e}')
                 return
 
-        storage.save_or_update_user(chat_id=chat_id, group=data['group_id'])  # Записываем в базу группу пользователя
+        storage.save_or_update_user(chat_id=chat_id, group=data['group'])  # Записываем в базу группу пользователя
 
         try:
             # Удаляем меню регистрации
@@ -265,8 +261,6 @@ def text(message):
 
         near_lesson = get_near_lesson(lessons)
 
-        print(near_lesson)
-
         if not near_lesson:
             bot.send_message(chat_id=chat_id, text='Сегодня больше пар нет 😎')
             return
@@ -275,7 +269,7 @@ def text(message):
                                                f'Начало в {near_lesson["time"]}')
 
     elif 'Напоминания' in data and user:
-        time = user['remining']
+        time = user['reminder']
         if not time:
             time = 0
         bot.send_message(chat_id=chat_id, text=get_remining_status(time),

@@ -40,15 +40,14 @@ def makeInlineKeyboard_chooseCourses(courses=[]):
 
 
 # Кнопки выбора группы
-def makeInlineKeyboard_chooseGroups(groups_list=[]):
+def makeInlineKeyboard_chooseGroups(groups=[]):
     markup = types.InlineKeyboardMarkup()
-    for group in groups_list:
+    for group in groups:
         name = group['name']
-        courses_id = group['group_id']
-        data = json.dumps({"group_id": courses_id})
+        data = json.dumps({"group": name})
         markup.add(types.InlineKeyboardButton(text=name, callback_data=data))
     # Кнопка назад
-    data = json.dumps({"group_id": "back"})
+    data = json.dumps({"group": "back"})
     markup.add(types.InlineKeyboardButton(text='<', callback_data=data))
     return markup
 
