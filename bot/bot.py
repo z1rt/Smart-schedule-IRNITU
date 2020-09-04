@@ -56,21 +56,12 @@ def help(message):
                                            '/reg - повторная регистрация')
 
 
-last_data = {}  # Информация о последней нажатой кнопке пользователем
-
-
 # ==================== Обработка Inline кнопок ==================== #
 @bot.callback_query_handler(func=lambda call: True)
 def handle_query(message):
-    global last_data
     chat_id = message.message.chat.id
     message_id = message.message.message_id
     data = message.data
-
-    # Проверка что пользователь не нажал одну и ту же кнопку неколько раз (с одной и той же информацией)
-    if chat_id in last_data.keys() and data == last_data[chat_id]:
-        return
-    last_data[chat_id] = data
     print(data)
 
     # После того как пользователь выбрал институт
@@ -80,9 +71,13 @@ def handle_query(message):
 
         DB.set_user_inst(chat_id=chat_id, inst_id=data['inst_id'])  # Записываем в базу институт пользователя
         inst = DB.get_user_info(chat_id=chat_id)['inst_name']
-        # Выводим сообщение со списком курсов
-        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst}\nВыберите курс',
-                              reply_markup=makeInlineKeyboard_chooseCourses(courses))
+        try:
+            # Выводим сообщение со списком курсов
+            bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst}\nВыберите курс',
+                                  reply_markup=makeInlineKeyboard_chooseCourses(courses))
+        except Exception as e:
+            print(f'Error: {e}')
+            return
 
     # После того как пользователь выбрал курс или нажал кнопку назад при выборе курса
     elif 'course_id' in data:
@@ -91,10 +86,14 @@ def handle_query(message):
         # Если нажали кнопку назад
         if data['course_id'] == 'back':
             DB.del_user_info(chat_id)  # Удаляем информацию об институте пользователя из базы данных
-            bot.edit_message_text(message_id=message_id, chat_id=chat_id,
-                                  text='Выберите институт',
-                                  reply_markup=makeInlineKeyboard_chooseInstitute(DB.get_institute()))
-            return
+            try:
+                bot.edit_message_text(message_id=message_id, chat_id=chat_id,
+                                      text='Выберите институт',
+                                      reply_markup=makeInlineKeyboard_chooseInstitute(DB.get_institute()))
+                return
+            except Exception as e:
+                print(f'Error: {e}')
+                return
 
         groups = DB.get_group(data['course_id'])
 
@@ -102,9 +101,14 @@ def handle_query(message):
         user_info = DB.get_user_info(chat_id=chat_id)
         inst_name = user_info['inst_name']
         kourse = user_info['course']
-        # Выводим сообщение со списком групп
-        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst_name}, {kourse}\nВыберите группу',
-                              reply_markup=makeInlineKeyboard_chooseGroups(groups))
+        try:
+            # Выводим сообщение со списком групп
+            bot.edit_message_text(message_id=message_id, chat_id=chat_id,
+                                  text=f'{inst_name}, {kourse}\nВыберите группу',
+                                  reply_markup=makeInlineKeyboard_chooseGroups(groups))
+        except Exception as e:
+            print(f'Error: {e}')
+            return
 
     # После того как пользователь выбрал группу или нажал кнопку назад при выборе группы
     elif 'group_id' in data:
@@ -115,15 +119,24 @@ def handle_query(message):
             DB.del_user_course(chat_id)  # Удаляем информацию о курсе пользователя из базы данных
             inst_name = DB.get_user_info(chat_id)['inst_name']
             courses = DB.get_course(inst_name=inst_name)
-            # Выводим сообщение со списком курсов
-            bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst_name}\nВыберите курс',
-                                  reply_markup=makeInlineKeyboard_chooseCourses(courses))
-            return
+
+            try:
+                # Выводим сообщение со списком курсов
+                bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{inst_name}\nВыберите курс',
+                                      reply_markup=makeInlineKeyboard_chooseCourses(courses))
+                return
+            except Exception as e:
+                print(f'Error: {e}')
+                return
 
         DB.set_user_group(chat_id=chat_id, group_id=data['group_id'])  # Записываем в базу группу пользователя
 
-        # Удаляем меню регистрации
-        bot.delete_message(message_id=message_id, chat_id=chat_id)
+        try:
+            # Удаляем меню регистрации
+            bot.delete_message(message_id=message_id, chat_id=chat_id)
+        except Exception as e:
+            print(f'Error: {e}')
+            return
 
         bot.send_message(chat_id=chat_id,
                          text='Вы успешно зарегистрировались!😊\n\n'
@@ -133,13 +146,22 @@ def handle_query(message):
     elif 'remining_btn' in data:
         data = json.loads(data)
         if data['remining_btn'] == 'close':
-            bot.delete_message(message_id=message_id, chat_id=chat_id)
-            return
+            try:
+                bot.delete_message(message_id=message_id, chat_id=chat_id)
+                return
+            except Exception as e:
+                print(f'Error: {e}')
+                return
         time = data['remining_btn']
-        bot.edit_message_text(message_id=message_id, chat_id=chat_id,
-                              text='Настройка напоминаний ⚙\n\n'
-                                   'Укажите за сколько минут до начала пары должно приходить сообщение',
-                              reply_markup=makeInlineKeyboard_custRemining(time))
+
+        try:
+            bot.edit_message_text(message_id=message_id, chat_id=chat_id,
+                                  text='Настройка напоминаний ⚙\n\n'
+                                       'Укажите за сколько минут до начала пары должно приходить сообщение',
+                                  reply_markup=makeInlineKeyboard_custRemining(time))
+        except Exception as e:
+            print(f'Error: {e}')
+            return
 
 
     elif 'remining_del' in data:
@@ -148,16 +170,26 @@ def handle_query(message):
         if time == 0:
             return
         time -= 5
-        bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
-                                      reply_markup=makeInlineKeyboard_custRemining(time))
+
+        try:
+            bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
+                                          reply_markup=makeInlineKeyboard_custRemining(time))
+        except Exception as e:
+            print(f'Error: {e}')
+            return
 
 
     elif 'remining_add' in data:
         data = json.loads(data)
         time = data['remining_add']
         time += 5
-        bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
-                                      reply_markup=makeInlineKeyboard_custRemining(time))
+
+        try:
+            bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
+                                          reply_markup=makeInlineKeyboard_custRemining(time))
+        except Exception as e:
+            print(f'Error: {e}')
+            return
 
     elif 'remining_save' in data:
         data = json.loads(data)
@@ -165,8 +197,12 @@ def handle_query(message):
 
         DB.set_user_reminding(chat_id=chat_id, time=time)
 
-        bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=get_remining_status(time),
-                              reply_markup=makeInlineKeyboard_remining(time))
+        try:
+            bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=get_remining_status(time),
+                                  reply_markup=makeInlineKeyboard_remining(time))
+        except Exception as e:
+            print(f'Error: {e}')
+            return
 
 
 def get_remining_status(time):
@@ -217,7 +253,6 @@ def text(message):
                                                f'Начало в {near_lesson["time"]}')
 
     elif 'Напоминания' in data and user_info:
-        last_data[chat_id] = ''
         time = user_info['remining']
         if not time:
             time = 0
