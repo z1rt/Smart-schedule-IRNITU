@@ -1,5 +1,4 @@
 venv
 .idea
-config.py
 __pycache__
-database.db
+data

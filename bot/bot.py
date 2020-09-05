@@ -19,6 +19,7 @@ from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_cho
 
 TOKEN = os.environ.get('TOKEN')
 TIMER_URL = os.environ.get('TIMER_URL')
+HOST_URL = os.environ.get('HOST_URL')
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
@@ -280,5 +281,7 @@ def text(message):
 if __name__ == '__main__':
     bot.skip_pending = True
     bot.remove_webhook()
-    print('Бот запущен локально')
+    print('Бот запущен локально', flush=True)
     bot.polling(none_stop=True, interval=0)
+else:
+    bot.set_webhook(url=f'{HOST_URL}/{TOKEN}')

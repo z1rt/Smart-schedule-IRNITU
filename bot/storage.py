@@ -1,4 +1,8 @@
+import os
 from pymongo import MongoClient
+
+MONGO_DB_ADDR = os.environ.get('MONGO_DB_ADDR')
+MONGO_DB_PORT = os.environ.get('MONGO_DB_PORT')
 
 
 class MongodbService(object):
@@ -14,7 +18,7 @@ class MongodbService(object):
         return cls._instance
 
     def __init__(self):
-        self._client = MongoClient("localhost", 27017)
+        self._client = MongoClient(f'mongodb://{MONGO_DB_ADDR}:{MONGO_DB_PORT}')
         self._db = self._client.Smart_schedule_IRNITU
 
     def get_data(self, collection) -> list:
