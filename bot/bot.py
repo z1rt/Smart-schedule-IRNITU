@@ -245,11 +245,12 @@ def text(message):
     if 'Расписание' in data and user:
         group = storage.get_user(chat_id=chat_id)['group']
         print(group)
-        schedule = storage.get_schedule(group=group)['schedule']
+        schedule = storage.get_schedule(group=group)
         if not schedule:
             bot.send_message(chat_id=chat_id,
                              text='Расписание временно недоступно🚫😣\n'                                           'Попробуйте позже⏱')
             return
+        schedule = schedule['schedule']
         bot.send_message(chat_id=chat_id, text=f'<b>Расписание {group}</b>\n{schedule}', parse_mode='HTML')
 
     elif 'Ближайшая пара' in data and user:
