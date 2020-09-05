@@ -43,7 +43,7 @@ class MongodbService(object):
 
     def get_courses(self, institute='') -> list:
         """возвращает список курсов у определённого института"""
-        return list(self._db.courses.find(filter={'institute': institute}))
+        return list(self._db.courses.find(filter={'institute': {'$regex': f'{institute}*'}}))
 
     def get_groups(self, course='') -> list:
         """возвращает список групп на определённом курсе"""
@@ -69,44 +69,6 @@ class MongodbService(object):
     def delete_user_or_userdata(self, chat_id: int, delete_only_course: bool = False):
         """удаление пользователя или курса пользователя из базы данных"""
         if delete_only_course:
-            return self._db.users.update_one(filter={'chat_id': chat_id}, update={'$set': {'course': ''}}, upsert=True)
+            return self._db.users.update_one(filter={'chat_id': chat_id}, update={'$unset': {'course': ''}},
+                                             upsert=True)
         return self._db.users.delete_one(filter={'chat_id': chat_id})
-
-
-# from pprint import pprint
-storage = MongodbService()
-#
-# storage.save_courses([
-#     {'name': '1 курс', 'institute': 'ИВТ'},
-#     {'name': '2 курс', 'institute': 'ИВТ'},
-#     {'name': '3 курс', 'institute': 'ИВТ'},
-#     {'name': '4 курс', 'institute': 'ИВТ'},
-#
-#     {'name': '1 курс', 'institute': 'ИИТиАД'},
-#     {'name': '2 курс', 'institute': 'ИИТиАД'},
-#     {'name': '3 курс', 'institute': 'ИИТиАД'},
-#     {'name': '4 курс', 'institute': 'ИИТиАД'},
-#     {'name': '5 курс', 'institute': 'ИИТиАД'},
-# ])
-
-
-# pprint(storage.get_courses(institute='ИИТиАД'))
-
-
-# storage.save_groups([
-#     {
-#         'name': 'ИБб-18-1',
-#         'institute': 'ИИТиАД',
-#         'course': '3 курс'
-#     },
-#     {
-#         'name': 'ИБб-18-2',
-#         'institute': 'ИИТиАД',
-#         'course': '3 курс'
-#     },
-#     {
-#         'name': 'ИБб-20-1',
-#         'institute': 'ИИТиАД',
-#         'course': '1 курс'
-#     }
-# ])

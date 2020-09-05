@@ -23,7 +23,7 @@ TIMER_URL = os.environ.get('TIMER_URL')
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 
-storage = MongodbService() #.get_instance()
+storage = MongodbService()  # .get_instance()
 
 app = Flask(__name__)
 
@@ -102,7 +102,8 @@ def handle_query(message):
 
         # Если нажали кнопку назад
         if data['course'] == 'back':
-            storage.delete_user_or_userdata(chat_id=chat_id)  # Удаляем информацию об институте пользователя из базы данных
+            storage.delete_user_or_userdata(
+                chat_id=chat_id)  # Удаляем информацию об институте пользователя из базы данных
             try:
                 bot.edit_message_text(message_id=message_id, chat_id=chat_id,
                                       text='Выберите институт',
@@ -256,8 +257,8 @@ def text(message):
         group = user['group']
         bot.send_message(chat_id=chat_id, text=f'<b>Расписание {group}</b>\n{schedule}', parse_mode='HTML')
     elif 'Ближайшая пара' in data and user:
-        lessons = [{'date': '3 сентября', 'time': '22:05', 'name': 'Физика', 'aud': 'К-313'},
-                   {'date': '3 сентября', 'time': '22:06', 'name': 'Матан', 'aud': 'Ж-310'}]
+        lessons = [{'date': '5 сентября', 'time': '09:50', 'name': 'Физика', 'aud': 'К-313'},
+                   {'date': '5 сентября', 'time': '11:02', 'name': 'Матан', 'aud': 'Ж-310'}]
 
         near_lesson = get_near_lesson(lessons)
 
@@ -274,6 +275,7 @@ def text(message):
             time = 0
         bot.send_message(chat_id=chat_id, text=get_remining_status(time),
                          reply_markup=makeInlineKeyboard_remining(time))
+
     else:
         bot.send_message(chat_id, text='Я вас не понимаю 😞')
 

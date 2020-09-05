@@ -1,6 +1,8 @@
 from telebot import types
 import json
 
+MAX_CALLBACK_RANGE = 41
+
 
 # Создаём основные кнопки
 def makeReplyKeyboard_startMenu():
@@ -19,14 +21,21 @@ def makeInlineKeyboard_chooseInstitute(institutes=[]):
     markup = types.InlineKeyboardMarkup()
     for institute in institutes:
         name = institute['name']
-        data = json.dumps({"institute": name})
+        short_name  = name
+
+        # Проверяем длину callback_data
+        callback_body = '{"institute": ""}'
+        if len(name + callback_body) > MAX_CALLBACK_RANGE:
+            short_name = name[:MAX_CALLBACK_RANGE - len(callback_body)]
+
+        data = '{"institute": "' + short_name + '"}'
+
         markup.add(types.InlineKeyboardButton(text=name, callback_data=data))
     return markup
 
 
 # Кнопки выбора курса
 def makeInlineKeyboard_chooseCourses(courses=[]):
-
     markup = types.InlineKeyboardMarkup()
     for course in courses:
         name = course['name']
