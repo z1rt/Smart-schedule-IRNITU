@@ -30,7 +30,13 @@ def get_near_lesson(lessons: list) -> dict:
         month = months[date[1]]
         day = int(date[0])
         hour, minute = map(int, les['time'].split(':'))
+
         time = datetime(year=year_now, month=month, day=day, hour=hour, minute=minute)
+
+        if hour < 10:
+            hour = f'0{hour}'
+        if minute < 10:
+            minute = f'0{minute}'
 
         if int(month) != int(month_now) or int(month) == int(month_now) and int(day) != int(day_now):
             continue
