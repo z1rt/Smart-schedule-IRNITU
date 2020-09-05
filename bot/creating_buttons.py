@@ -1,6 +1,8 @@
 from telebot import types
 import json
 
+MAX_CALLBACK_RANGE = 41
+
 
 # Создаём основные кнопки
 def makeReplyKeyboard_startMenu():
@@ -14,41 +16,47 @@ def makeReplyKeyboard_startMenu():
 
 
 # Кнопки выбора института
-def makeInlineKeyboard_chooseInstitute(institute_list=[]):
+def makeInlineKeyboard_chooseInstitute(institutes=[]):
+    print(institutes)
     markup = types.InlineKeyboardMarkup()
-    for inst in institute_list:
-        name = inst['name']
-        institute_id = inst['inst_id']
-        data = json.dumps({"inst_id": institute_id})
+    for institute in institutes:
+        name = institute['name']
+        short_name = name
+
+        # Проверяем длину callback_data
+        callback_body = '{"institute": ""}'
+        if len(name + callback_body) > MAX_CALLBACK_RANGE:
+            short_name = name[:MAX_CALLBACK_RANGE - len(callback_body)]
+
+        data = '{"institute": "' + short_name + '"}'
+
         markup.add(types.InlineKeyboardButton(text=name, callback_data=data))
     return markup
 
 
 # Кнопки выбора курса
-def makeInlineKeyboard_chooseCourses(courses_list=[]):
+def makeInlineKeyboard_chooseCourses(courses=[]):
     markup = types.InlineKeyboardMarkup()
-    for course in courses_list:
+    for course in courses:
         name = course['name']
-        course_id = course['course_id']
-        data = json.dumps({"course_id": course_id})
+        data = json.dumps({"course": name})
         markup.add(types.InlineKeyboardButton(text=name, callback_data=data))
 
     # Кнопка назад
-    data = json.dumps({"course_id": "back"})
+    data = json.dumps({"course": "back"})
     markup.add(types.InlineKeyboardButton(text='<', callback_data=data))
     return markup
 
 
 # Кнопки выбора группы
-def makeInlineKeyboard_chooseGroups(groups_list=[]):
+def makeInlineKeyboard_chooseGroups(groups=[]):
     markup = types.InlineKeyboardMarkup()
-    for group in groups_list:
+    for group in groups:
         name = group['name']
-        courses_id = group['group_id']
-        data = json.dumps({"group_id": courses_id})
+        data = json.dumps({"group": name})
         markup.add(types.InlineKeyboardButton(text=name, callback_data=data))
     # Кнопка назад
-    data = json.dumps({"group_id": "back"})
+    data = json.dumps({"group": "back"})
     markup.add(types.InlineKeyboardButton(text='<', callback_data=data))
     return markup
 

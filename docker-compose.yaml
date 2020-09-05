@@ -1,0 +1,21 @@
+version: "3"
+
+volumes:
+  mongodb_volume:
+
+services:
+  bot:
+    build: bot/
+    restart: always
+    environment:
+      - TOKEN=
+      # если оставить HOST_URL пустымм, то бот запустится локально
+      - HOST_URL=
+      - MONGO_DB_ADDR=mongodb
+      - MONGO_DB_PORT=27017
+
+  mongodb:
+    image: mongo:latest
+    volumes:
+      - mongodb_volume:/data/db
+    restart: always

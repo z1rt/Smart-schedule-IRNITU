@@ -4,17 +4,17 @@ import pytz
 TZ_IRKUTSK = pytz.timezone('Asia/Irkutsk')
 
 
-# Возвращает ближайшую пару
-def get_near_lesson(lessons=[]):
+def get_near_lesson(lessons: list) -> dict:
+    '''Возвращает ближайшую пару'''
     global TZ_IRKUTSK
 
     # ============== тестовые данные =============
-    # lessons = [{'date': '19 марта', 'time': '21:15', 'name': 'Физика', 'aud': 'К-313'},
-    #            {'date': '18 марта', 'time': '21:30', 'name': 'Матан', 'aud': 'Ж-310'}]
+    # lessons = [{'date': '3 сентября', 'time': '16:00', 'name': 'Физика', 'aud': 'К-313'},
+    #            {'date': '3 сентября', 'time': '17:00', 'name': 'Матан', 'aud': 'Ж-310'}]
     # =============================================
 
     months = {'января': 1, 'февраля': 2, 'марта': 3, 'апреля': 4, 'мая': 5, 'июня': 6, 'июля': 7, 'августа': 8,
-              'снтября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12}
+              'сентября': 9, 'октября': 10, 'ноября': 11, 'декабря': 12}
     year_now = int(datetime.now(TZ_IRKUTSK).strftime('%Y'))
     month_now = int(datetime.now(TZ_IRKUTSK).strftime('%m'))
     day_now = int(datetime.now(TZ_IRKUTSK).strftime('%d'))
@@ -30,7 +30,13 @@ def get_near_lesson(lessons=[]):
         month = months[date[1]]
         day = int(date[0])
         hour, minute = map(int, les['time'].split(':'))
+
         time = datetime(year=year_now, month=month, day=day, hour=hour, minute=minute)
+
+        if hour < 10:
+            hour = f'0{hour}'
+        if minute < 10:
+            minute = f'0{minute}'
 
         if int(month) != int(month_now) or int(month) == int(month_now) and int(day) != int(day_now):
             continue
@@ -42,5 +48,9 @@ def get_near_lesson(lessons=[]):
             near_lesson['aud'] = les['aud']
 
     if not near_lesson['name']:
-        near_lesson = None
+        near_lesson = {}
     return near_lesson
+
+
+if __name__ == '__main__':
+    app.run()
