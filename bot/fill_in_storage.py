@@ -2,18 +2,23 @@
 
 from storage import MongodbService
 from pprint import pprint
+import click
 
 storage = MongodbService()
 
 
-def test_data():
+@click.group()
+def cli():
     pass
 
 
-test_data()
+@click.command()
+def save_test_data():
+    pass
 
 
-def full_data():
+@click.command()
+def save_full_data():
     storage.save_institutes(
         [{'name': 'Аспирантура'}, {'name': 'Байкальский институт БРИКС'}, {'name': 'ИАиТ'}, {'name': 'ИАСиД'},
          {'name': 'ИВТ'}, {'name': 'Институт заочно-вечернего обучения'}, {'name': 'ИИТиАД'}, {'name': 'ИН'},
@@ -49,3 +54,10 @@ def full_data():
             'course': '1 курс'
         }
     ])
+
+
+cli.add_command(save_test_data)
+cli.add_command(save_full_data)
+
+if __name__ == '__main__':
+    cli()
