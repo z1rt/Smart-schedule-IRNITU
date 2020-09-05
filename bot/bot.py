@@ -4,7 +4,6 @@ import telebot
 import json
 from time import sleep
 import os
-# import DB
 
 from storage import MongodbService
 
@@ -244,18 +243,15 @@ def text(message):
     user = storage.get_user(chat_id=chat_id)
 
     if 'Расписание' in data and user:
-        try:
-            response = requests.get('http://127.0.0.1:5000/get_schedule',
-                                    params={'user': json.dumps(user_info)})
-            # schedule = json.loads(response.text)
-            schedule = response.text
-        except Exception as e:
-            print(f'Error: {e}')
-            bot.send_message(chat_id=chat_id, text='Технические неполадки😣 Попробуйте позже')
+        group = storage.get_user(chat_id=chat_id)['group']
+        print(group)
+        schedule = storage.get_schedule(group=group)['schedule']
+        if not schedule:
+            bot.send_message(chat_id=chat_id,
+                             text='Расписание временно недоступно🚫😣\n'                                           'Попробуйте позже⏱')
             return
-
-        group = user['group']
         bot.send_message(chat_id=chat_id, text=f'<b>Расписание {group}</b>\n{schedule}', parse_mode='HTML')
+
     elif 'Ближайшая пара' in data and user:
         lessons = [{'date': '5 сентября', 'time': '09:50', 'name': 'Физика', 'aud': 'К-313'},
                    {'date': '5 сентября', 'time': '11:02', 'name': 'Матан', 'aud': 'Ж-310'}]

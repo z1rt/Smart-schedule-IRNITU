@@ -21,7 +21,7 @@ def makeInlineKeyboard_chooseInstitute(institutes=[]):
     markup = types.InlineKeyboardMarkup()
     for institute in institutes:
         name = institute['name']
-        short_name  = name
+        short_name = name
 
         # Проверяем длину callback_data
         callback_body = '{"institute": ""}'

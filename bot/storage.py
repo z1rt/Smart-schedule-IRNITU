@@ -72,3 +72,7 @@ class MongodbService(object):
             return self._db.users.update_one(filter={'chat_id': chat_id}, update={'$unset': {'course': ''}},
                                              upsert=True)
         return self._db.users.delete_one(filter={'chat_id': chat_id})
+
+    def get_schedule(self, group):
+        """возвращает расписание группы"""
+        return self._db.schedule.find_one(filter={'group': group})
