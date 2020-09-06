@@ -5,15 +5,15 @@ import json
 from time import sleep
 import os
 
-from storage import MongodbService
+from functions.storage import MongodbService
 
-from near_lesson import get_near_lesson
+from functions.near_lesson import get_near_lesson
 
 from flask import Flask, request
 import requests
 import json
 
-from creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
+from functions.creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
     makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups, makeInlineKeyboard_remining, \
     makeInlineKeyboard_custRemining
 
