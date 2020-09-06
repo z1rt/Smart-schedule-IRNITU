@@ -13,9 +13,9 @@ from flask import Flask, request
 import requests
 import json
 
-from functions.creating_buttons import makeReplyKeyboard_startMenu, makeInlineKeyboard_chooseInstitute, \
-    makeInlineKeyboard_chooseCourses, makeInlineKeyboard_chooseGroups, makeInlineKeyboard_remining, \
-    makeInlineKeyboard_custRemining
+from functions.creating_buttons import make_keyboard_start_menu, make_inline_keyboard_choose_institute, \
+    make_inline_keyboard_choose_courses, make_inline_keyboard_choose_groups, make_inline_keyboard_notifications, \
+    make_inline_keyboard_set_notifications
 
 TOKEN = os.environ.get('TOKEN')
 TIMER_URL = os.environ.get('TIMER_URL')
@@ -48,7 +48,7 @@ def start_message(message):
     bot.send_message(chat_id=chat_id, text='Привет!\n')
     bot.send_message(chat_id=chat_id, text='Для начала пройдите небольшую регистрацию😉\n'
                                            'Выберите институт',
-                     reply_markup=makeInlineKeyboard_chooseInstitute(storage.get_institutes()))
+                     reply_markup=make_inline_keyboard_choose_institute(storage.get_institutes()))
 
 
 # Команда /reg
@@ -58,7 +58,7 @@ def registration(message):
     storage.delete_user_or_userdata(chat_id=chat_id)
     bot.send_message(chat_id=chat_id, text='Пройдите повторную регистрацию😉\n'
                                            'Выберите институт',
-                     reply_markup=makeInlineKeyboard_chooseInstitute(storage.get_institutes()))
+                     reply_markup=make_inline_keyboard_choose_institute(storage.get_institutes()))
 
 
 # Команда /help
@@ -89,7 +89,7 @@ def handle_query(message):
         try:
             # Выводим сообщение со списком курсов
             bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{institute}\nВыберите курс',
-                                  reply_markup=makeInlineKeyboard_chooseCourses(courses))
+                                  reply_markup=make_inline_keyboard_choose_courses(courses))
         except Exception as e:
             print(f'Error: {e}')
             return
@@ -107,7 +107,7 @@ def handle_query(message):
             try:
                 bot.edit_message_text(message_id=message_id, chat_id=chat_id,
                                       text='Выберите институт',
-                                      reply_markup=makeInlineKeyboard_chooseInstitute(storage.get_institutes()))
+                                      reply_markup=make_inline_keyboard_choose_institute(storage.get_institutes()))
                 return
             except Exception as e:
                 print(f'Error: {e}')
@@ -123,7 +123,7 @@ def handle_query(message):
             # Выводим сообщение со списком групп
             bot.edit_message_text(message_id=message_id, chat_id=chat_id,
                                   text=f'{institute}, {course}\nВыберите группу',
-                                  reply_markup=makeInlineKeyboard_chooseGroups(groups))
+                                  reply_markup=make_inline_keyboard_choose_groups(groups))
         except Exception as e:
             print(f'Error: {e}')
             return
@@ -142,7 +142,7 @@ def handle_query(message):
             try:
                 # Выводим сообщение со списком курсов
                 bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{institute}\nВыберите курс',
-                                      reply_markup=makeInlineKeyboard_chooseCourses(courses))
+                                      reply_markup=make_inline_keyboard_choose_courses(courses))
                 return
             except Exception as e:
                 print(f'Error: {e}')
@@ -160,79 +160,77 @@ def handle_query(message):
         bot.send_message(chat_id=chat_id,
                          text='Вы успешно зарегистрировались!😊\n\n'
                               'Для того чтобы пройти регистрацию повторно, воспользуйтесь командой /reg',
-                         reply_markup=makeReplyKeyboard_startMenu())
+                         reply_markup=make_keyboard_start_menu())
 
-    elif 'remining_btn' in data:
+    elif 'notification_btn' in data:
         data = json.loads(data)
-        if data['remining_btn'] == 'close':
+        if data['notification_btn'] == 'close':
             try:
                 bot.delete_message(message_id=message_id, chat_id=chat_id)
                 return
             except Exception as e:
                 print(f'Error: {e}')
                 return
-        time = data['remining_btn']
+        time = data['notification_btn']
 
         try:
             bot.edit_message_text(message_id=message_id, chat_id=chat_id,
                                   text='Настройка напоминаний ⚙\n\n'
                                        'Укажите за сколько минут до начала пары должно приходить сообщение',
-                                  reply_markup=makeInlineKeyboard_custRemining(time))
+                                  reply_markup=make_inline_keyboard_set_notifications(time))
         except Exception as e:
             print(f'Error: {e}')
             return
 
-
-    elif 'remining_del' in data:
+    elif 'del_notifications' in data:
         data = json.loads(data)
-        time = data['remining_del']
+        time = data['del_notifications']
         if time == 0:
             return
         time -= 5
 
         try:
             bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
-                                          reply_markup=makeInlineKeyboard_custRemining(time))
+                                          reply_markup=make_inline_keyboard_set_notifications(time))
         except Exception as e:
             print(f'Error: {e}')
             return
 
-
-    elif 'remining_add' in data:
+    elif 'add_notifications' in data:
         data = json.loads(data)
-        time = data['remining_add']
+        time = data['add_notifications']
         time += 5
 
         try:
             bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
-                                          reply_markup=makeInlineKeyboard_custRemining(time))
+                                          reply_markup=make_inline_keyboard_set_notifications(time))
         except Exception as e:
             print(f'Error: {e}')
             return
 
-    elif 'remining_save' in data:
+    elif 'save_notifications' in data:
         data = json.loads(data)
-        time = data['remining_save']
+        time = data['save_notifications']
 
         storage.save_or_update_user(chat_id=chat_id, reminder=time)
 
         try:
-            bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=get_remining_status(time),
-                                  reply_markup=makeInlineKeyboard_remining(time))
+            bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=get_notifications_status(time),
+                                  reply_markup=make_inline_keyboard_notifications(time))
         except Exception as e:
             print(f'Error: {e}')
             return
 
 
-def get_remining_status(time):
-    '''Статус напоминаний'''
+def get_notifications_status(time):
+    """Статус напоминаний"""
     if not time or time == 0:
-        remining = 'Напоминания выключены ❌\n' \
-                   'Воспользуйтесь настройками, чтобы включить'
+        notifications_status = 'Напоминания выключены ❌\n' \
+                               'Воспользуйтесь настройками, чтобы включить'
     else:
-        remining = f'Напоминания включены ✅\n' \
-                   f'Сообщение придёт за {time} мин до начала пары 😇'
-    return remining
+        notifications_status = f'Напоминания включены ✅\n' \
+                               f'Сообщение придёт за {time} мин до начала пары 😇'
+    return notifications_status
 
 
 # ==================== Обработка текста ==================== #
@@ -271,8 +269,8 @@ def text(message):
         time = user['reminder']
         if not time:
             time = 0
-        bot.send_message(chat_id=chat_id, text=get_remining_status(time),
-                         reply_markup=makeInlineKeyboard_remining(time))
+        bot.send_message(chat_id=chat_id, text=get_notifications_status(time),
+                         reply_markup=make_inline_keyboard_notifications(time))
 
     else:
         bot.send_message(chat_id, text='Я вас не понимаю 😞')

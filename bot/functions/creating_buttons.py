@@ -5,7 +5,7 @@ MAX_CALLBACK_RANGE = 41
 
 
 # Создаём основные кнопки
-def makeReplyKeyboard_startMenu():
+def make_keyboard_start_menu():
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
     btn1 = types.KeyboardButton('Расписание')
     btn2 = types.KeyboardButton('Ближайшая пара')
@@ -16,7 +16,7 @@ def makeReplyKeyboard_startMenu():
 
 
 # Кнопки выбора института
-def makeInlineKeyboard_chooseInstitute(institutes=[]):
+def make_inline_keyboard_choose_institute(institutes=[]):
     print(institutes)
     markup = types.InlineKeyboardMarkup()
     for institute in institutes:
@@ -35,7 +35,7 @@ def makeInlineKeyboard_chooseInstitute(institutes=[]):
 
 
 # Кнопки выбора курса
-def makeInlineKeyboard_chooseCourses(courses=[]):
+def make_inline_keyboard_choose_courses(courses=[]):
     markup = types.InlineKeyboardMarkup()
     for course in courses:
         name = course['name']
@@ -49,7 +49,7 @@ def makeInlineKeyboard_chooseCourses(courses=[]):
 
 
 # Кнопки выбора группы
-def makeInlineKeyboard_chooseGroups(groups=[]):
+def make_inline_keyboard_choose_groups(groups=[]):
     markup = types.InlineKeyboardMarkup()
     for group in groups:
         name = group['name']
@@ -62,30 +62,28 @@ def makeInlineKeyboard_chooseGroups(groups=[]):
 
 
 # Кнопка "Настройка уведомлений"
-def makeInlineKeyboard_remining(time=0):
+def make_inline_keyboard_notifications(time=0):
     markup = types.InlineKeyboardMarkup()
-    data = json.dumps({"remining_btn": time})
+    data = json.dumps({"notification_btn": time})
     markup.add(types.InlineKeyboardButton(text='Настройки ⚙', callback_data=data))
-    data = json.dumps({"remining_btn": "close"})
+    data = json.dumps({"notification_btn": "close"})
     markup.add(types.InlineKeyboardButton(text='Свернуть', callback_data=data))
     return markup
 
 
 # Кнопки настройки уведомлений
-def makeInlineKeyboard_custRemining(time=0):
+def make_inline_keyboard_set_notifications(time=0):
     markup = types.InlineKeyboardMarkup()
-    # data = json.dumps({"remening": time})
-    actions = ['del', 'None', 'add']
-    data_del = json.dumps({"remining_del": time})
+    data_del = json.dumps({"del_notifications": time})
     if time != 0:
         text_check = f'{time} мин'
     else:
         text_check = 'off'
-    data_add = json.dumps({"remining_add": time})
+    data_add = json.dumps({"add_notifications": time})
     markup.add(types.InlineKeyboardButton(text='-', callback_data=data_del),
                types.InlineKeyboardButton(text=text_check, callback_data='None'),
                types.InlineKeyboardButton(text='+', callback_data=data_add))
     # Кнопка Сохранить
-    data_save = json.dumps({"remining_save": time})
+    data_save = json.dumps({"save_notifications": time})
     markup.add(types.InlineKeyboardButton(text='Сохранить', callback_data=data_save))
     return markup
