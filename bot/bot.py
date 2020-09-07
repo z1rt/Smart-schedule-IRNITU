@@ -6,8 +6,8 @@ from time import sleep
 import os
 
 from functions.storage import MongodbService
-
 from functions.near_lesson import get_near_lesson
+from functions.logger import logger
 
 from flask import Flask, request
 import requests
@@ -75,7 +75,8 @@ def handle_query(message):
     chat_id = message.message.chat.id
     message_id = message.message.message_id
     data = message.data
-    print(data)
+
+    logger.info(f'Inline button data: {data}')
 
     # После того как пользователь выбрал институт
     if 'institute' in data:
@@ -91,10 +92,9 @@ def handle_query(message):
             bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=f'{institute}\nВыберите курс',
                                   reply_markup=make_inline_keyboard_choose_courses(courses))
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(e)
             return
 
-        user = storage.get_user(chat_id=chat_id)
 
     # После того как пользователь выбрал курс или нажал кнопку назад при выборе курса
     elif 'course' in data:
@@ -110,22 +110,23 @@ def handle_query(message):
                                       reply_markup=make_inline_keyboard_choose_institute(storage.get_institutes()))
                 return
             except Exception as e:
-                print(f'Error: {e}')
+                logger.exception(e)
                 return
 
         groups = storage.get_groups(data['course'])
 
         storage.save_or_update_user(chat_id=chat_id, course=data['course'])  # Записываем в базу курс пользователя
         user = storage.get_user(chat_id=chat_id)
-        institute = user['institute']
-        course = user['course']
+
         try:
+            institute = user['institute']
+            course = user['course']
             # Выводим сообщение со списком групп
             bot.edit_message_text(message_id=message_id, chat_id=chat_id,
                                   text=f'{institute}, {course}\nВыберите группу',
                                   reply_markup=make_inline_keyboard_choose_groups(groups))
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(e)
             return
 
     # После того как пользователь выбрал группу или нажал кнопку назад при выборе группы
@@ -136,7 +137,11 @@ def handle_query(message):
         if data['group'] == 'back':
             storage.delete_user_or_userdata(chat_id=chat_id,
                                             delete_only_course=True)  # Удаляем информацию о курсе пользователя из базы данных
-            institute = storage.get_user(chat_id=chat_id)['institute']
+            try:
+                institute = storage.get_user(chat_id=chat_id)['institute']
+            except Exception as e:
+                logger.exception(e)
+                return
             courses = storage.get_courses(institute=institute)
 
             try:
@@ -145,7 +150,7 @@ def handle_query(message):
                                       reply_markup=make_inline_keyboard_choose_courses(courses))
                 return
             except Exception as e:
-                print(f'Error: {e}')
+                logger.exception(e)
                 return
 
         storage.save_or_update_user(chat_id=chat_id, group=data['group'])  # Записываем в базу группу пользователя
@@ -154,7 +159,7 @@ def handle_query(message):
             # Удаляем меню регистрации
             bot.delete_message(message_id=message_id, chat_id=chat_id)
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(e)
             return
 
         bot.send_message(chat_id=chat_id,
@@ -169,7 +174,7 @@ def handle_query(message):
                 bot.delete_message(message_id=message_id, chat_id=chat_id)
                 return
             except Exception as e:
-                print(f'Error: {e}')
+                logger.exception(e)
                 return
         time = data['notification_btn']
 
@@ -179,7 +184,7 @@ def handle_query(message):
                                        'Укажите за сколько минут до начала пары должно приходить сообщение',
                                   reply_markup=make_inline_keyboard_set_notifications(time))
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(e)
             return
 
     elif 'del_notifications' in data:
@@ -193,7 +198,7 @@ def handle_query(message):
             bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
                                           reply_markup=make_inline_keyboard_set_notifications(time))
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(e)
             return
 
     elif 'add_notifications' in data:
@@ -205,7 +210,7 @@ def handle_query(message):
             bot.edit_message_reply_markup(message_id=message_id, chat_id=chat_id,
                                           reply_markup=make_inline_keyboard_set_notifications(time))
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(e)
             return
 
     elif 'save_notifications' in data:
@@ -218,7 +223,7 @@ def handle_query(message):
             bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=get_notifications_status(time),
                                   reply_markup=make_inline_keyboard_notifications(time))
         except Exception as e:
-            print(f'Error: {e}')
+            logger.exception(e)
             return
 
 
@@ -242,7 +247,11 @@ def text(message):
     user = storage.get_user(chat_id=chat_id)
 
     if 'Расписание' in data and user:
-        group = storage.get_user(chat_id=chat_id)['group']
+        try:
+            group = storage.get_user(chat_id=chat_id)['group']
+        except Exception as e:
+            logger.exception(e)
+            return
         schedule = storage.get_schedule(group=group)
         if not schedule:
             bot.send_message(chat_id=chat_id,
@@ -278,7 +287,7 @@ def text(message):
 if __name__ == '__main__':
     bot.skip_pending = True
     bot.remove_webhook()
-    print('Бот запущен локально', flush=True)
+    logger.info('Бот запущен локально')
     bot.polling(none_stop=True, interval=0)
 else:
     bot.set_webhook(url=f'{HOST_URL}/{TOKEN}')
