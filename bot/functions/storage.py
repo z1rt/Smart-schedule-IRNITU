@@ -3,6 +3,7 @@ from pymongo import MongoClient
 
 MONGO_DB_ADDR = os.environ.get('MONGO_DB_ADDR')
 MONGO_DB_PORT = os.environ.get('MONGO_DB_PORT')
+MONGO_DB_DATABASE = os.environ.get('MONGO_DB_DATABASE')
 
 
 class MongodbService(object):
@@ -19,7 +20,7 @@ class MongodbService(object):
 
     def __init__(self):
         self._client = MongoClient(f'mongodb://{MONGO_DB_ADDR}:{MONGO_DB_PORT}')
-        self._db = self._client.Smart_schedule_IRNITU
+        self._db = self._client[MONGO_DB_DATABASE]
 
     def get_data(self, collection) -> list:
         """возвращает список документов из указанной коллекции"""
