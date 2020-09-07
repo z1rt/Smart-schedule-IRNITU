@@ -212,7 +212,7 @@ def handle_query(message):
         data = json.loads(data)
         time = data['save_notifications']
 
-        storage.save_or_update_user(chat_id=chat_id, reminder=time)
+        storage.save_or_update_user(chat_id=chat_id, notifications=time)
 
         try:
             bot.edit_message_text(message_id=message_id, chat_id=chat_id, text=get_notifications_status(time),
@@ -243,7 +243,6 @@ def text(message):
 
     if 'Расписание' in data and user:
         group = storage.get_user(chat_id=chat_id)['group']
-        print(group)
         schedule = storage.get_schedule(group=group)
         if not schedule:
             bot.send_message(chat_id=chat_id,
@@ -266,7 +265,7 @@ def text(message):
                                                f'Начало в {near_lesson["time"]}')
 
     elif 'Напоминания' in data and user:
-        time = user['reminder']
+        time = user['notifications']
         if not time:
             time = 0
         bot.send_message(chat_id=chat_id, text=get_notifications_status(time),

@@ -53,17 +53,17 @@ class MongodbService(object):
         """возвращает список групп на определённом курсе"""
         return list(self._db.groups.find(filter={'course': course}))
 
-    def save_or_update_user(self, chat_id: int, institute='', course='', group='', reminder=0):
+    def save_or_update_user(self, chat_id: int, institute='', course='', group='', notifications=0):
         """сохраняет или изменяет данные пользователя (коллекция users)"""
-        update = {'chat_id': chat_id, 'reminder': 0}
+        update = {'chat_id': chat_id, 'notifications': 0}
         if institute:
             update['institute'] = institute
         if course:
             update['course'] = course
         if group:
             update['group'] = group
-        if reminder:
-            update['reminder'] = reminder
+        if notifications:
+            update['notifications'] = notifications
 
         return self._db.users.update_one(filter={'chat_id': chat_id}, update={'$set': update}, upsert=True)
 

@@ -17,7 +17,6 @@ def make_keyboard_start_menu():
 
 # Кнопки выбора института
 def make_inline_keyboard_choose_institute(institutes=[]):
-    print(institutes)
     markup = types.InlineKeyboardMarkup()
     for institute in institutes:
         name = institute['name']
