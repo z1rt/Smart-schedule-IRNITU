@@ -244,6 +244,8 @@ def text(message):
     chat_id = message.chat.id
     data = message.text
 
+    logger.info(f'Inline button data: {data}')
+
     user = storage.get_user(chat_id=chat_id)
 
     if 'Расписание' in data and user:
